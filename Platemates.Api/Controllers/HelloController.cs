@@ -13,18 +13,4 @@ public class HelloController : ControllerBase
 
         return Ok(hello);
     }
-
-    // [HttpGet]
-    // [Route("ConnectionString")]
-    // public ActionResult<string> GetConnectionString()
-    // {
-    //     var builder = WebApplication.CreateBuilder();
-
-    //     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-    //     if (connectionString == null)
-    //         return NotFound();
-
-    //     return Ok(connectionString);
-    // }
 }
