@@ -9,7 +9,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                           ?? builder.Configuration["SQLAZURECONNSTR_DefaultConnection"]
+                           ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+    options.UseNpgsql(connectionString);
+});
 
 
 var app = builder.Build();
