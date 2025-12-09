@@ -1,4 +1,4 @@
-namespace Platemates.Api.Models;
+namespace Platemates.Domain.Entities;
 
 public class TestEntity
 {

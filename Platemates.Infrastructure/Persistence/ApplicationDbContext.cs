@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Platemates.Api.Models;
+using Platemates.Domain.Entities;
 
-namespace Platemates.Api.Data;
+namespace Platemates.Infrastructure.Persistence;
 
 public class ApplicationDbContext : DbContext
 {

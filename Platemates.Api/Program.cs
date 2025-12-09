@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Platemates.Api.Data;
+using Platemates.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
