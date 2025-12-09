@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Platemates.Api.Data;
-using Platemates.Api.Models;
+using Platemates.Infrastructure.Persistence;
+using Platemates.Domain.Entities;
 
 namespace Platemates.Api.Controllers;
 
