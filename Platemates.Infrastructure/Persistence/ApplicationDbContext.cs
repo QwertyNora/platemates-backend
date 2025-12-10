@@ -10,5 +10,26 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    public DbSet<TestEntity> TestEntities { get; set; }
+    public DbSet<User> Users { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(u => u.Id);
+
+            entity.HasIndex(u => u.ClerkUserId)
+                  .IsUnique();
+
+            entity.Property(u => u.Email)
+                .IsRequired()
+                .HasMaxLength(256);
+
+            entity.Property(u => u.Username)
+                .IsRequired()
+                .HasMaxLength(64);
+        });
+    }
 }
