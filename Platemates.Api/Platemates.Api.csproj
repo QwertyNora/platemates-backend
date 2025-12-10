@@ -13,6 +13,11 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
+
+     <!-- Clerk community SDK -->
+    <PackageReference Include="Clerk.Net" Version="1.15.0" />
+    <PackageReference Include="Clerk.Net.AspNetCore.Security" Version="1.0.0" />
+    <PackageReference Include="Clerk.Net.DependencyInjection" Version="1.15.0" />
   </ItemGroup>
 
   <ItemGroup>
