@@ -64,6 +64,122 @@ public class RestaurantService : IRestaurantService
         return MapToUserRestaurantDto(userRestaurant);
     }
 
+    public async Task<List<UserRestaurantDto>> GetMyRestaurantsAsync(Guid userId, string status = "all")
+    {
+        RestaurantStatus? statusFilter = status.ToLower() switch
+        {
+            "want-to-go" => RestaurantStatus.WantToGo,
+            "been-to" => RestaurantStatus.BeenTo,
+            _ => null // "all" or any other value = no filter
+        };
+
+        var userRestaurants = await _repository.GetUserRestaurantsAsync(userId, statusFilter);
+
+        return userRestaurants.Select(MapToUserRestaurantDto).ToList();
+    }
+
+    public async Task<UserRestaurantDto> MarkAsBeenToAsync(Guid userId, Guid userRestaurantId, AddReviewDto reviewDto)
+    {
+        // Get user restaurant (validate ownership)
+        var userRestaurant = await _repository.GetUserRestaurantByIdAsync(userRestaurantId, userId);
+
+        if (userRestaurant == null)
+        {
+            throw new InvalidOperationException("Restaurant not found or you don't have access to it");
+        }
+
+        if (userRestaurant.Status == RestaurantStatus.BeenTo)
+        {
+            throw new InvalidOperationException("Restaurant is already marked as 'Been To'");
+        }
+
+        // Create review
+        var review = new RestaurantReview
+        {
+            UserRestaurantId = userRestaurantId,
+            Rating = reviewDto.Rating,
+            PriceRange = reviewDto.PriceRange,
+            Notes = reviewDto.Notes
+        };
+
+        await _repository.CreateReviewAsync(review);
+
+        // Update status
+        userRestaurant.Status = RestaurantStatus.BeenTo;
+        userRestaurant = await _repository.UpdateUserRestaurantAsync(userRestaurant);
+
+        return MapToUserRestaurantDto(userRestaurant);
+    }
+
+    public async Task<UserRestaurantDto> MarkAsWantToGoAsync(Guid userId, Guid userRestaurantId)
+    {
+        // Get user restaurant (validate ownership)
+        var userRestaurant = await _repository.GetUserRestaurantByIdAsync(userRestaurantId, userId);
+
+        if (userRestaurant == null)
+        {
+            throw new InvalidOperationException("Restaurant not found or you don't have access to it");
+        }
+
+        if (userRestaurant.Status == RestaurantStatus.WantToGo)
+        {
+            throw new InvalidOperationException("Restaurant is already marked as 'Want to Go'");
+        }
+
+        // Delete review if it exists
+        if (userRestaurant.Review != null)
+        {
+            await _repository.DeleteReviewAsync(userRestaurant.Review);
+        }
+
+        // Update status
+        userRestaurant.Status = RestaurantStatus.WantToGo;
+        userRestaurant = await _repository.UpdateUserRestaurantAsync(userRestaurant);
+
+        return MapToUserRestaurantDto(userRestaurant);
+    }
+
+    public async Task<UserRestaurantDto> UpdateRestaurantAsync(Guid userId, Guid userRestaurantId, UpdateRestaurantDto dto)
+    {
+        // Get user restaurant (validate ownership)
+        var userRestaurant = await _repository.GetUserRestaurantByIdAsync(userRestaurantId, userId);
+
+        if (userRestaurant == null)
+        {
+            throw new InvalidOperationException("Restaurant not found or you don't have access to it");
+        }
+
+        var restaurant = userRestaurant.Restaurant;
+
+        // PATCH: Only update fields that are provided (not null)
+        if (dto.Name != null)
+        {
+            restaurant.Name = dto.Name;
+        }
+
+        if (dto.Address != null)
+        {
+            restaurant.Address = dto.Address;
+        }
+
+        if (dto.CuisineType != null)
+        {
+            restaurant.CuisineType = dto.CuisineType;
+        }
+
+        // Update restaurant
+        await _repository.UpdateRestaurantAsync(restaurant);
+
+        // Update UserRestaurant notes if provided
+        if (dto.Notes != null)
+        {
+            userRestaurant.Notes = dto.Notes;
+            userRestaurant = await _repository.UpdateUserRestaurantAsync(userRestaurant);
+        }
+
+        return MapToUserRestaurantDto(userRestaurant);
+    }
+
     private UserRestaurantDto MapToUserRestaurantDto(UserRestaurant userRestaurant)
     {
         return new UserRestaurantDto(
@@ -84,7 +200,15 @@ public class RestaurantService : IRestaurantService
             userRestaurant.Notes,
             userRestaurant.CreatedAt,
             userRestaurant.UpdatedAt,
-            null // No review for WantToGo status
+            userRestaurant.Review != null
+                ? new RestaurantReviewDto(
+                    userRestaurant.Review.Id,
+                    userRestaurant.Review.Rating,
+                    userRestaurant.Review.PriceRange,
+                    userRestaurant.Review.Notes,
+                    userRestaurant.Review.CreatedAt
+                )
+                : null
         );
     }
 }
