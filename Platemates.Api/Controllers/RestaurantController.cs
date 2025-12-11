@@ -24,15 +24,104 @@ public class RestaurantsController : ControllerBase
     /// </summary>
     [HttpPost("manual")]
     public async Task<ActionResult<UserRestaurantDto>> AddRestaurantManually(
-        [FromBody] AddRestaurantManuallyDto dto,
-        CancellationToken cancellationToken)
+        [FromBody] AddRestaurantManuallyDto dto)
     {
-        // Get Clerk user ID from token
+        var user = await GetOrCreateCurrentUserAsync();
+        var userRestaurant = await _restaurantService.AddRestaurantManuallyAsync(user.Id, dto);
+
+        return CreatedAtAction(
+            nameof(AddRestaurantManually),
+            new { id = userRestaurant.Id },
+            userRestaurant
+        );
+    }
+
+    /// <summary>
+    /// Get current user's restaurants
+    /// </summary>
+    /// <param name="status">Filter by status: "all", "want-to-go", or "been-to" (default: "all")</param>
+    [HttpGet("my-list")]
+    public async Task<ActionResult<List<UserRestaurantDto>>> GetMyRestaurants(
+        [FromQuery] string status = "all")
+    {
+        var user = await GetOrCreateCurrentUserAsync();
+        var restaurants = await _restaurantService.GetMyRestaurantsAsync(user.Id, status);
+
+        return Ok(restaurants);
+    }
+
+    /// <summary>
+    /// Mark a restaurant as "Been To" and add a review
+    /// </summary>
+    [HttpPost("{userRestaurantId}/mark-as-been-to")]
+    public async Task<ActionResult<UserRestaurantDto>> MarkAsBeenTo(
+        Guid userRestaurantId,
+        [FromBody] AddReviewDto reviewDto)
+    {
+        try
+        {
+            var user = await GetOrCreateCurrentUserAsync();
+            var userRestaurant = await _restaurantService.MarkAsBeenToAsync(user.Id, userRestaurantId, reviewDto);
+
+            return Ok(userRestaurant);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Mark a restaurant back to "Want to Go" (deletes review)
+    /// </summary>
+    [HttpDelete("{userRestaurantId}/review")]
+    public async Task<ActionResult<UserRestaurantDto>> MarkAsWantToGo(Guid userRestaurantId)
+    {
+        try
+        {
+            var user = await GetOrCreateCurrentUserAsync();
+            var userRestaurant = await _restaurantService.MarkAsWantToGoAsync(user.Id, userRestaurantId);
+
+            return Ok(userRestaurant);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Update restaurant information (PATCH - only updates provided fields)
+    /// </summary>
+    [HttpPatch("{userRestaurantId}")]
+    public async Task<ActionResult<UserRestaurantDto>> UpdateRestaurant(
+        Guid userRestaurantId,
+        [FromBody] UpdateRestaurantDto dto)
+    {
+        try
+        {
+            var user = await GetOrCreateCurrentUserAsync();
+            var userRestaurant = await _restaurantService.UpdateRestaurantAsync(user.Id, userRestaurantId, dto);
+
+            return Ok(userRestaurant);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Helper method: Get or create current user from JWT token
+    /// </summary>
+    private async Task<UserResponseDto> GetOrCreateCurrentUserAsync()
+    {
+        // Get Clerk user ID from token (sub claim)
         var clerkUserId = User.FindFirst("sub")?.Value;
 
         if (string.IsNullOrWhiteSpace(clerkUserId))
         {
-            return Unauthorized("Missing Clerk user id (sub) in token.");
+            throw new UnauthorizedAccessException("Missing Clerk user id (sub) in token.");
         }
 
         // Get other claims from token
@@ -45,8 +134,8 @@ public class RestaurantsController : ControllerBase
             User.FindFirst("username")?.Value
             ?? (email.Contains("@") ? email.Split('@')[0] : $"user-{clerkUserId[..6]}");
 
-        // Get or create user
-        var userDto = await _userService.GetOrCreateUserAsync(
+        // Use service to get or create user
+        return await _userService.GetOrCreateUserAsync(
             Guid.Empty,
             clerkUserId,
             email,
@@ -54,15 +143,6 @@ public class RestaurantsController : ControllerBase
             DateTime.UtcNow,
             null,
             null
-        );
-
-        // Add restaurant
-        var userRestaurant = await _restaurantService.AddRestaurantManuallyAsync(userDto.Id, dto);
-
-        return CreatedAtAction(
-            nameof(AddRestaurantManually),
-            new { id = userRestaurant.Id },
-            userRestaurant
         );
     }
 }
