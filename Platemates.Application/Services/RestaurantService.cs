@@ -180,6 +180,20 @@ public class RestaurantService : IRestaurantService
         return MapToUserRestaurantDto(userRestaurant);
     }
 
+    public async Task DeleteRestaurantAsync(Guid userId, Guid userRestaurantId)
+    {
+        var userRestaurant = await _repository.GetUserRestaurantByIdAsync(userRestaurantId, userId);
+
+        if (userRestaurant == null)
+        {
+            throw new InvalidOperationException("Restaurant not found or you don't have permission to delete it.");
+        }
+
+        await _repository.DeleteUserRestaurantAsync(userRestaurant);
+    }
+
+
+
     private UserRestaurantDto MapToUserRestaurantDto(UserRestaurant userRestaurant)
     {
         return new UserRestaurantDto(
