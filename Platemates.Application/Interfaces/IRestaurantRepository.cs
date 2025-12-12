@@ -59,4 +59,9 @@ public interface IRestaurantRepository
     /// Update restaurant information
     /// </summary>
     Task<Restaurant> UpdateRestaurantAsync(Restaurant restaurant);
+
+    /// <summary>
+    /// Delete a user's restaurant relationship
+    /// </summary>
+    Task DeleteUserRestaurantAsync(UserRestaurant userRestaurant);
 }
