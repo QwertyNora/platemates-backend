@@ -43,8 +43,8 @@ public class RestaurantService : IRestaurantService
                 Name = dto.Name,
                 Address = dto.Address,
                 CuisineType = dto.CuisineType,
-                Latitude = null, // No coordinates for manual entry
-                Longitude = null
+                Latitude = dto.Latitude,
+                Longitude = dto.Longitude
             };
 
             restaurant = await _repository.CreateRestaurantAsync(restaurant);
