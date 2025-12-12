@@ -43,8 +43,8 @@ public class RestaurantService : IRestaurantService
                 Name = dto.Name,
                 Address = dto.Address,
                 CuisineType = dto.CuisineType,
-                Latitude = null, // No coordinates for manual entry
-                Longitude = null
+                Latitude = dto.Latitude,
+                Longitude = dto.Longitude
             };
 
             restaurant = await _repository.CreateRestaurantAsync(restaurant);
@@ -179,6 +179,20 @@ public class RestaurantService : IRestaurantService
 
         return MapToUserRestaurantDto(userRestaurant);
     }
+
+    public async Task DeleteRestaurantAsync(Guid userId, Guid userRestaurantId)
+    {
+        var userRestaurant = await _repository.GetUserRestaurantByIdAsync(userRestaurantId, userId);
+
+        if (userRestaurant == null)
+        {
+            throw new InvalidOperationException("Restaurant not found or you don't have permission to delete it.");
+        }
+
+        await _repository.DeleteUserRestaurantAsync(userRestaurant);
+    }
+
+
 
     private UserRestaurantDto MapToUserRestaurantDto(UserRestaurant userRestaurant)
     {

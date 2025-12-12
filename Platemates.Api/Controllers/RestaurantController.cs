@@ -47,6 +47,23 @@ public class RestaurantsController : ControllerBase
     }
 
     /// <summary>
+    /// Get detailed information about a place using its place_id
+    /// </summary>
+    [HttpGet("place-details/{placeId}")]
+    public async Task<ActionResult<GooglePlaceDetailsDto>> GetPlaceDetails(string placeId)
+    {
+        try
+        {
+            var details = await _googlePlacesService.GetPlaceDetailsAsync(placeId);
+            return Ok(details);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "Failed to get place details", details = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Add a restaurant manually to "Want to Go" list
     /// </summary>
     [HttpPost("manual")]
@@ -131,6 +148,25 @@ public class RestaurantsController : ControllerBase
             var userRestaurant = await _restaurantService.UpdateRestaurantAsync(user.Id, userRestaurantId, dto);
 
             return Ok(userRestaurant);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Delete a restaurant from user's list
+    /// </summary>
+    [HttpDelete("{userRestaurantId}")]
+    public async Task<ActionResult> DeleteRestaurant(Guid userRestaurantId)
+    {
+        try
+        {
+            var user = await GetOrCreateCurrentUserAsync();
+            await _restaurantService.DeleteRestaurantAsync(user.Id, userRestaurantId);
+
+            return NoContent();
         }
         catch (InvalidOperationException ex)
         {

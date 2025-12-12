@@ -8,4 +8,9 @@ public interface IGooglePlacesService
     /// Search for restaurant predictions using Google Places Autocomplete
     /// </summary>
     Task<GooglePlacesSearchResultDto> SearchRestaurantsAsync(string query);
+
+    /// <summary>
+    /// Get detailed information about a place using its place_id
+    /// </summary>
+    Task<GooglePlaceDetailsDto> GetPlaceDetailsAsync(string placeId);
 }

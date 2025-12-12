@@ -22,3 +22,17 @@ public record GooglePlacePredictionDto(
 public record GooglePlacesSearchResultDto(
     List<GooglePlacePredictionDto> Predictions
 );
+
+/// <summary>
+/// Response DTO for Google Place Details
+/// </summary>
+public record GooglePlaceDetailsDto(
+    string PlaceId,
+    string Name,
+    string Address,
+    string? CuisineType,
+    string? PhoneNumber,
+    string? Website,
+    double? Latitude,
+    double? Longitude
+);
