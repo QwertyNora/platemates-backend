@@ -30,4 +30,9 @@ public interface IRestaurantService
     /// Update restaurant information and notes (PATCH - only updates provided fields)
     /// </summary>
     Task<UserRestaurantDto> UpdateRestaurantAsync(Guid userId, Guid userRestaurantId, UpdateRestaurantDto dto);
+
+    /// <summary>
+    /// Delete a restaurant from user's list
+    /// </summary>
+    Task DeleteRestaurantAsync(Guid userId, Guid userRestaurantId);
 }
