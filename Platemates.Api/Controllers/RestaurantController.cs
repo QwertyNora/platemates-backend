@@ -139,6 +139,25 @@ public class RestaurantsController : ControllerBase
     }
 
     /// <summary>
+    /// Delete a restaurant from user's list
+    /// </summary>
+    [HttpDelete("{userRestaurantId}")]
+    public async Task<ActionResult> DeleteRestaurant(Guid userRestaurantId)
+    {
+        try
+        {
+            var user = await GetOrCreateCurrentUserAsync();
+            await _restaurantService.DeleteRestaurantAsync(user.Id, userRestaurantId);
+
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Helper method: Get or create current user from JWT token
     /// </summary>
     private async Task<UserResponseDto> GetOrCreateCurrentUserAsync()
