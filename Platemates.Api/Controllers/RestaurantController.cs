@@ -12,11 +12,38 @@ public class RestaurantsController : ControllerBase
 {
     private readonly IRestaurantService _restaurantService;
     private readonly IUserService _userService;
+    private readonly IGooglePlacesService _googlePlacesService;
 
-    public RestaurantsController(IRestaurantService restaurantService, IUserService userService)
+    public RestaurantsController(IRestaurantService restaurantService, IUserService userService, IGooglePlacesService googlePlacesService)
     {
         _restaurantService = restaurantService;
         _userService = userService;
+        _googlePlacesService = googlePlacesService;
+    }
+
+    ///<summary>
+    /// Search for restaurants using Google Places Autocomplete
+    /// </summary>
+    [HttpGet("search")]
+    public async Task<ActionResult<GooglePlacesSearchResultDto>> SearchRestaurants(
+        [FromQuery] string query
+    )
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return BadRequest(new { error = "Query parameter is required" });
+        }
+
+        try
+        {
+            var user = await GetOrCreateCurrentUserAsync();
+            var results = await _googlePlacesService.SearchRestaurantsAsync(query);
+            return Ok(results);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "Failed to search restaurants", details = ex.Message });
+        }
     }
 
     /// <summary>
