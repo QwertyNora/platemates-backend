@@ -47,6 +47,23 @@ public class RestaurantsController : ControllerBase
     }
 
     /// <summary>
+    /// Get detailed information about a place using its place_id
+    /// </summary>
+    [HttpGet("place-details/{placeId}")]
+    public async Task<ActionResult<GooglePlaceDetailsDto>> GetPlaceDetails(string placeId)
+    {
+        try
+        {
+            var details = await _googlePlacesService.GetPlaceDetailsAsync(placeId);
+            return Ok(details);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "Failed to get place details", details = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Add a restaurant manually to "Want to Go" list
     /// </summary>
     [HttpPost("manual")]
