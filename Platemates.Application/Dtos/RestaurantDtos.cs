@@ -18,7 +18,10 @@ public record AddRestaurantManuallyDto(
     string? CuisineType,
 
     [MaxLength(1000, ErrorMessage = "Notes cannot exceed 1000 characters")]
-    string? Notes
+    string? Notes,
+
+    double? Latitude,
+    double? Longitude
 );
 
 ///<summary>
