@@ -125,4 +125,10 @@ public class RestaurantRepository : IRestaurantRepository
         await _context.SaveChangesAsync();
         return restaurant;
     }
+
+    public async Task DeleteUserRestaurantAsync(UserRestaurant userRestaurant)
+    {
+        _context.UserRestaurants.Remove(userRestaurant);
+        await _context.SaveChangesAsync();
+    }
 }
